@@ -8,12 +8,18 @@ on:
 
 jobs:
   style_check:
+    name: Style Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Specify your Python version
+
+      - name: Install Black
         run: |
           pip install black
 
@@ -22,21 +28,35 @@ jobs:
           black --check .
 
   test:
+    name: Run Tests
     runs-on: ubuntu-latest
     needs: style_check
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: |
-          pip install pytest coverage
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Specify your Python version
 
-      - name: Run tests with coverage
+      - name: Install Dependencies
         run: |
-          pytest --cov=.
+          pip install coverage pytest pytest-cov
 
-      - name: Save coverage artifact
+      - name: Run Unit Tests with Coverage
+        run: |
+          coverage run -m unittest discover -s tests/unit
+
+      - name: Run Integration Tests with Coverage
+        run: |
+          coverage run --append -m pytest tests/integration
+
+      - name: Combine Coverage Data
+        run: |
+          coverage combine
+
+      - name: Save Coverage Artifact
         uses: actions/upload-artifact@v3
         with:
           name: coverage-data
@@ -44,27 +64,33 @@ jobs:
           retention-days: 1
 
   coverage_report:
+    name: Coverage Report
     runs-on: ubuntu-latest
     needs: test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Download coverage artifact
+      - name: Download Coverage Artifact
         uses: actions/download-artifact@v3
         with:
           name: coverage-data
 
-      - name: Install dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Specify your Python version
+
+      - name: Install Coverage
         run: |
           pip install coverage
 
-      - name: Generate coverage report
+      - name: Generate Coverage Report
         run: |
           coverage report
           coverage xml
 
-      - name: Save coverage XML artifact
+      - name: Save Coverage XML Artifact
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report

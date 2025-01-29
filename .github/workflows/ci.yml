@@ -56,26 +56,13 @@ jobs:
         run: |
           coverage run --append -m pytest tests/integration
 
-      - name: Verify Coverage Data Exists
-        run: |
-          if [ ! -f .coverage ]; then
-            echo "Coverage data file .coverage not found!"
-            exit 1
-          fi
-
-      - name: List Coverage File Location
-        run: |
-          echo "Current Directory Contents:"
-          ls -la
-          echo "Coverage File Details:"
-          ls -la .coverage
-
       - name: Save Coverage Artifact
         uses: actions/upload-artifact@v3
         with:
           name: coverage-data
           path: .coverage
           retention-days: 1
+          include-hidden-files: true
 
   coverage_report:
     name: Coverage Report
@@ -102,10 +89,13 @@ jobs:
       - name: Install Coverage
         run: pip install coverage
 
+      - name: Move Coverage Data
+        run: |
+          mv ./coverage_data/.coverage ./
+
       - name: Generate Coverage Report
         run: |
-          coverage combine ./coverage_data/.coverage
-          coverage report
+          coverage report -m
           coverage xml
 
       - name: Save Coverage XML Artifact

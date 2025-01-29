@@ -19,14 +19,14 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: Upgrade pip
+        run: pip install --upgrade pip
+
       - name: Install Black
-        run: |
-          pip install --upgrade pip
-          pip install black
+        run: pip install black
 
       - name: Run Black Code Style Check
-        run: |
-          black --check .
+        run: black --check .
 
   test:
     name: Run Tests
@@ -41,9 +41,11 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: Upgrade pip
+        run: pip install --upgrade pip
+
       - name: Install Dependencies
         run: |
-          pip install --upgrade pip
           pip install coverage pytest pytest-cov numpy matplotlib
 
       - name: Run Unit Tests with Coverage
@@ -53,6 +55,20 @@ jobs:
       - name: Run Integration Tests with Coverage
         run: |
           coverage run --append -m pytest tests/integration
+
+      - name: Verify Coverage Data Exists
+        run: |
+          if [ ! -f .coverage ]; then
+            echo "Coverage data file .coverage not found!"
+            exit 1
+          fi
+
+      - name: List Coverage File Location
+        run: |
+          echo "Current Directory Contents:"
+          ls -la
+          echo "Coverage File Details:"
+          ls -la .coverage
 
       - name: Save Coverage Artifact
         uses: actions/upload-artifact@v3
@@ -73,18 +89,22 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: coverage-data
+          path: ./coverage_data
 
       - name: Set Up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
+      - name: Upgrade pip
+        run: pip install --upgrade pip
+
       - name: Install Coverage
-        run: |
-          pip install coverage
+        run: pip install coverage
 
       - name: Generate Coverage Report
         run: |
+          coverage combine ./coverage_data/.coverage
           coverage report
           coverage xml
 

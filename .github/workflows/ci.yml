@@ -54,10 +54,6 @@ jobs:
         run: |
           coverage run --append -m pytest tests/integration
 
-      - name: Combine Coverage Data
-        run: |
-          coverage combine
-
       - name: Save Coverage Artifact
         uses: actions/upload-artifact@v3
         with:
